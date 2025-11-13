@@ -2,6 +2,7 @@ from langchain_openai import ChatOpenAI
 from django.conf import settings
 
 def get_openai_api_key():
+    # ApiKey.objects.get(provider='openai' org=CFE)
     return settings.OPENAI_API_KEY
 
 def get_openai_model(model="gpt-4o-mini"):

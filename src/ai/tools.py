@@ -4,27 +4,29 @@ from documents.models import Document
 
 @tool
 def list_documents(config: RunnableConfig):
-    '''Get document for the current user'''
-    print(config)
-    metadata = config.get('metadata') or config.get('configurable') # depending on langchain version
-    user_id = metadata.get('user_id') # extract user id from config metadata
-    qs = Document.objects.filter(owner_id=user_id, active=True) # Only active documents
+    '''List the most recent 5 document for the current user'''
+    # print(config)
+
+    limit = 5
+    configurable = config.get('configurable') or config.get('metadata') # depending on langchain version
+    user_id = configurable.get('user_id') # extract user id from config metadata
+    qs = Document.objects.filter(owner_id=user_id, active=True).order_by("-created_at") # Only active documents
     # serialize django data to python dicts
     response_data = []
-    for obj in qs:
+    for obj in qs[:limit]:
         response_data.append(
             {
                 "id": obj.id,
                 "title": obj.title,
             }
         )
-    return response_data
+    return {"documents": response_data}
 
 @tool
 def get_document(document_id:int, config: RunnableConfig):
     '''Get details of a document for a current user'''
-    metadata = config.get('metadata') or config.get('configurable') # depending on langchain version
-    user_id = metadata.get('user_id')
+    configurable = config.get('configurable') or config.get('metadata') # depending on langchain version
+    user_id = configurable.get('user_id')
     if user_id is None:
         raise Exception("Invalid user details, try again")
     
@@ -38,5 +40,10 @@ def get_document(document_id:int, config: RunnableConfig):
         "id": obj.id,
         "title": obj.title,
     }
-    return response_data
+    return {"documents": response_data}
 
+
+document_tools = [
+    list_documents,
+    get_document,
+]
